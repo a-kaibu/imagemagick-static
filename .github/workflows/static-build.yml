@@ -75,9 +75,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install bash & build tools
+      - name: Install build tools
         run: |
-          apk add --no-cache bash
+          apk update
+          apk add --no-cache bash git
           ./Dependencies/.github/build/linux-musl-x64/install.sh
 
       - name: Initialize Git Submodules
