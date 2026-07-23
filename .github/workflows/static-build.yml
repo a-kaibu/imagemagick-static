@@ -36,8 +36,7 @@ jobs:
 
       - name: Clone third-party dependencies
         run: |
-          cd Dependencies
-          ./clone-dependencies.sh
+          ./Dependencies/clone-dependencies.sh
 
       - name: Build static dependencies (.a)
         run: |
@@ -76,8 +75,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install build tools
+      - name: Install bash & build tools
         run: |
+          apk add --no-cache bash
           ./Dependencies/.github/build/linux-musl-x64/install.sh
 
       - name: Initialize Git Submodules
@@ -87,8 +87,7 @@ jobs:
 
       - name: Clone third-party dependencies
         run: |
-          cd Dependencies
-          ./clone-dependencies.sh
+          ./Dependencies/clone-dependencies.sh
 
       - name: Build static dependencies (.a)
         run: |
@@ -140,8 +139,7 @@ jobs:
 
       - name: Clone third-party dependencies
         run: |
-          cd Dependencies
-          ./clone-dependencies.sh
+          ./Dependencies/clone-dependencies.sh
 
       - name: Build static dependencies (.a)
         run: |
