@@ -66,48 +66,33 @@ jobs:
   build-linux-musl:
     name: Linux x64 Static (Musl - Portable)
     runs-on: ubuntu-24.04
-    container:
-      image: alpine:3.21
 
     steps:
       - name: Checkout ImageMagick
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           persist-credentials: false
 
-      - name: Install build tools
+      - name: Build fully static binary in Alpine Docker container
         run: |
-          apk update
-          apk add --no-cache bash git
-          ./Dependencies/.github/build/linux-musl-x64/install.sh
-
-      - name: Initialize Git Submodules
-        run: |
-          git config --global --add safe.directory "*"
-          git submodule update --init --recursive
-
-      - name: Clone third-party dependencies
-        run: |
-          ./Dependencies/clone-dependencies.sh
-
-      - name: Build static dependencies (.a)
-        run: |
-          ./Dependencies/.github/build/linux-musl-x64/build.sh
-
-      - name: Configure and build ImageMagick
-        run: |
-          export PKG_CONFIG_PATH="/tmp/dependencies/lib/pkgconfig:/tmp/dependencies/lib64/pkgconfig:$PKG_CONFIG_PATH"
-          export LDFLAGS="-L/tmp/dependencies/lib -L/tmp/dependencies/lib64 -static"
-          export CPPFLAGS="-I/tmp/dependencies/include"
-          autoreconf -fiv
-          ./configure --enable-static --disable-shared --with-quantum-depth=16 --prefix=/tmp/im-dist
-          make -j$(nproc)
-          make install
-
-      - name: Archive static binaries
-        run: |
-          cd /tmp/im-dist
-          tar -czvf ${{ github.workspace }}/imagemagick-linux-musl-x64-static.tar.gz bin/
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine:3.21 sh -c "
+            set -e
+            ./Dependencies/.github/build/linux-musl-x64/install.sh
+            ./Dependencies/clone-dependencies.sh
+            ./Dependencies/.github/build/linux-musl-x64/build.sh
+            
+            export PKG_CONFIG_PATH='/tmp/dependencies/lib/pkgconfig:/tmp/dependencies/lib64/pkgconfig:\$PKG_CONFIG_PATH'
+            export LDFLAGS='-L/tmp/dependencies/lib -L/tmp/dependencies/lib64 -static'
+            export CPPFLAGS='-I/tmp/dependencies/include'
+            autoreconf -fiv
+            ./configure --enable-static --disable-shared --with-quantum-depth=16 --prefix=/tmp/im-dist
+            make -j\$(nproc)
+            make install
+            
+            cd /tmp/im-dist
+            tar -czvf /workspace/imagemagick-linux-musl-x64-static.tar.gz bin/
+          "
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
