@@ -75,7 +75,7 @@ jobs:
           tar -czvf ${{ github.workspace }}/imagemagick-linux-${{ matrix.architecture }}-static.tar.gz bin/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: imagemagick-linux-${{ matrix.architecture }}-static
           path: imagemagick-linux-${{ matrix.architecture }}-static.tar.gz
@@ -134,7 +134,7 @@ jobs:
           "
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: imagemagick-linux-musl-${{ matrix.architecture }}-static
           path: imagemagick-linux-musl-${{ matrix.architecture }}-static.tar.gz
@@ -187,7 +187,7 @@ jobs:
           tar -czvf ${{ github.workspace }}/imagemagick-macos-${{ matrix.architecture }}-static.tar.gz bin/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: imagemagick-macos-${{ matrix.architecture }}-static
           path: imagemagick-macos-${{ matrix.architecture }}-static.tar.gz
