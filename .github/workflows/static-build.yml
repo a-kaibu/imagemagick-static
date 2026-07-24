@@ -25,8 +25,18 @@ env:
 
 jobs:
   build-linux-glibc:
-    name: Linux x64 Static (Glibc)
-    runs-on: ubuntu-24.04
+    name: Linux ${{ matrix.architecture }} Static (Glibc)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: x64
+            runner: ubuntu-24.04
+            asset: linux-x64-static.zip
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+            asset: linux-arm64-static.zip
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout ImageMagick
@@ -42,7 +52,7 @@ jobs:
       - name: Download Pre-built Static Dependencies
         run: |
           mkdir -p /tmp/dependencies
-          curl -sSL "https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/linux-x64-static.zip" -o /tmp/deps.zip
+          curl -sSL "https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/${{ matrix.asset }}" -o /tmp/deps.zip
           unzip -q /tmp/deps.zip -d /tmp/dependencies
           sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib/pkgconfig/*.pc || true
           sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib64/pkgconfig/*.pc || true
@@ -62,13 +72,13 @@ jobs:
       - name: Archive static binaries
         run: |
           cd /tmp/im-dist
-          tar -czvf ${{ github.workspace }}/imagemagick-linux-x64-static.tar.gz bin/
+          tar -czvf ${{ github.workspace }}/imagemagick-linux-${{ matrix.architecture }}-static.tar.gz bin/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imagemagick-linux-x64-static
-          path: imagemagick-linux-x64-static.tar.gz
+          name: imagemagick-linux-${{ matrix.architecture }}-static
+          path: imagemagick-linux-${{ matrix.architecture }}-static.tar.gz
 
   build-linux-musl:
     name: Linux x64 Static (Musl - Portable)
