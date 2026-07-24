@@ -50,9 +50,9 @@ jobs:
           export PKG_CONFIG="pkg-config --static"
           export PKG_CONFIG_PATH="/tmp/dependencies/lib/pkgconfig:/tmp/dependencies/lib64/pkgconfig:$PKG_CONFIG_PATH"
           export LDFLAGS="-L/tmp/dependencies/lib -L/tmp/dependencies/lib64"
-          export CPPFLAGS="-I/tmp/dependencies/include"
+          export CPPFLAGS="-I/tmp/dependencies/include -I/usr/include"
           autoreconf -fiv
-          ./configure --enable-static --disable-shared --with-quantum-depth=16 --prefix=/tmp/im-dist
+          ./configure --enable-static --disable-shared --with-quantum-depth=16 --without-zstd --prefix=/tmp/im-dist
           make -j$(nproc)
           make install
 
@@ -92,7 +92,7 @@ jobs:
             export LDFLAGS='-L/tmp/dependencies/lib -L/tmp/dependencies/lib64 -static'
             export CPPFLAGS='-I/tmp/dependencies/include'
             autoreconf -fiv
-            ./configure --enable-static --disable-shared --with-quantum-depth=16 --prefix=/tmp/im-dist
+            ./configure --enable-static --disable-shared --with-quantum-depth=16 --without-zstd --prefix=/tmp/im-dist
             make -j\$(nproc)
             make install
             
@@ -141,9 +141,9 @@ jobs:
           export PKG_CONFIG="pkg-config --static"
           export PKG_CONFIG_PATH="/tmp/dependencies/lib/pkgconfig:$PKG_CONFIG_PATH"
           export LDFLAGS="-L/tmp/dependencies/lib"
-          export CPPFLAGS="-I/tmp/dependencies/include"
+          export CPPFLAGS="-I/tmp/dependencies/include -I/opt/homebrew/include -I/usr/local/include"
           autoreconf -fiv
-          ./configure --enable-static --disable-shared --with-quantum-depth=16 --prefix=/tmp/im-dist
+          ./configure --enable-static --disable-shared --with-quantum-depth=16 --without-zstd --prefix=/tmp/im-dist
           make -j$(sysctl -n hw.ncpu)
           make install
 
