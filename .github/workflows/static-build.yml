@@ -37,7 +37,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y autoconf binutils gcc g++ libtool make pkg-config zip
+          sudo apt-get install -y autoconf binutils gcc g++ libtool make pkg-config zip libzstd-dev
 
       - name: Download Pre-built Static Dependencies
         run: |
@@ -81,7 +81,7 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine:3.21 sh -c "
             set -e
-            apk add --no-cache autoconf automake bash binutils g++ gcc gettext-tiny libtool make pkgconf curl zip
+            apk add --no-cache autoconf automake bash binutils g++ gcc gettext-tiny libtool make pkgconf curl zip zstd-dev
             
             mkdir -p /tmp/dependencies
             curl -sSL 'https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/linux-musl-x64-static.zip' -o /tmp/deps.zip
@@ -128,7 +128,7 @@ jobs:
 
       - name: Install build tools
         run: |
-          brew install automake libtool pkg-config
+          brew install automake libtool pkg-config zstd
 
       - name: Download Pre-built Static Dependencies
         run: |
