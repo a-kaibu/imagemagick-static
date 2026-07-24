@@ -105,7 +105,7 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine:3.21 sh -c "
             set -e
-            apk add --no-cache autoconf automake bash binutils g++ gcc gettext-tiny libtool make pkgconf curl zip zstd-dev zstd-static git gperf linux-headers musl-libintl py3-pip ragel texinfo
+            apk add --no-cache autoconf automake bash binutils cmake g++ gcc gettext-tiny libtool make pkgconf curl zip zstd-dev zstd-static git gperf linux-headers musl-libintl py3-pip ragel texinfo
 
             mkdir -p /tmp/dependencies
             if [ -n '${{ matrix.asset }}' ]; then
