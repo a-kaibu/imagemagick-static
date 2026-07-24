@@ -44,6 +44,8 @@ jobs:
           mkdir -p /tmp/dependencies
           curl -sSL "https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/linux-x64-static.zip" -o /tmp/deps.zip
           unzip -q /tmp/deps.zip -d /tmp/dependencies
+          sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib/pkgconfig/*.pc || true
+          sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib64/pkgconfig/*.pc || true
 
       - name: Configure and build ImageMagick
         run: |
@@ -53,6 +55,7 @@ jobs:
           export CPPFLAGS="-I/tmp/dependencies/include -I/usr/include"
           autoreconf -fiv
           ./configure --enable-static --disable-shared --with-quantum-depth=16 --prefix=/tmp/im-dist
+          sed -i 's/-l-lpthread/-lpthread/g' Makefile || true
           make -j$(nproc)
           make install
 
@@ -86,6 +89,8 @@ jobs:
             mkdir -p /tmp/dependencies
             curl -sSL 'https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/linux-musl-x64-static.zip' -o /tmp/deps.zip
             unzip -q /tmp/deps.zip -d /tmp/dependencies
+            sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib/pkgconfig/*.pc || true
+            sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib64/pkgconfig/*.pc || true
             
             export PKG_CONFIG='pkg-config --static'
             export PKG_CONFIG_PATH='/tmp/dependencies/lib/pkgconfig:/tmp/dependencies/lib64/pkgconfig:\$PKG_CONFIG_PATH'
@@ -93,6 +98,7 @@ jobs:
             export CPPFLAGS='-I/tmp/dependencies/include'
             autoreconf -fiv
             ./configure --enable-static --disable-shared --with-quantum-depth=16 --prefix=/tmp/im-dist
+            sed -i 's/-l-lpthread/-lpthread/g' Makefile || true
             make -j\$(nproc)
             make install
             
