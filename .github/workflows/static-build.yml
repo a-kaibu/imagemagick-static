@@ -20,6 +20,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  DEPENDENCIES_VERSION: "2026.07.18.1340"
+
 jobs:
   build-linux-glibc:
     name: Linux x64 Static (Glibc)
@@ -29,22 +32,18 @@ jobs:
       - name: Checkout ImageMagick
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           persist-credentials: false
 
       - name: Install build tools
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y autoconf autopoint binutils gcc g++ gettext git gperf libtool locales nasm pkg-config python3 python3-pip ragel texinfo zip
-          pip3 install --break-system-packages cmake==4.3.4 meson==1.11.1 ninja==1.13.0
+          sudo apt-get install -y autoconf binutils gcc g++ libtool make pkg-config zip
 
-      - name: Clone third-party dependencies
+      - name: Download Pre-built Static Dependencies
         run: |
-          ./Dependencies/clone-dependencies.sh
-
-      - name: Build static dependencies (.a)
-        run: |
-          ./Dependencies/.github/build/linux-x64/build.sh
+          mkdir -p /tmp/dependencies
+          curl -sSL "https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/linux-x64-static.zip" -o /tmp/deps.zip
+          unzip -q /tmp/deps.zip -d /tmp/dependencies
 
       - name: Configure and build ImageMagick
         run: |
@@ -76,16 +75,17 @@ jobs:
       - name: Checkout ImageMagick
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           persist-credentials: false
 
       - name: Build fully static binary in Alpine Docker container
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine:3.21 sh -c "
             set -e
-            ./Dependencies/.github/build/linux-musl-x64/install.sh
-            ./Dependencies/clone-dependencies.sh
-            ./Dependencies/.github/build/linux-musl-x64/build.sh
+            apk add --no-cache autoconf automake bash binutils g++ gcc gettext-tiny libtool make pkgconf curl zip
+            
+            mkdir -p /tmp/dependencies
+            curl -sSL 'https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/linux-musl-x64-static.zip' -o /tmp/deps.zip
+            unzip -q /tmp/deps.zip -d /tmp/dependencies
             
             export PKG_CONFIG='pkg-config --static'
             export PKG_CONFIG_PATH='/tmp/dependencies/lib/pkgconfig:/tmp/dependencies/lib64/pkgconfig:\$PKG_CONFIG_PATH'
@@ -114,28 +114,27 @@ jobs:
         include:
           - architecture: arm64
             runner: macos-14
+            asset: macos-arm64-static.zip
           - architecture: x64
             runner: macos-15-intel
+            asset: macos-x64-static.zip
     runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout ImageMagick
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           persist-credentials: false
 
       - name: Install build tools
         run: |
-          ./Dependencies/.github/build/macos-${{ matrix.architecture }}/install.sh
+          brew install automake libtool pkg-config
 
-      - name: Clone third-party dependencies
+      - name: Download Pre-built Static Dependencies
         run: |
-          ./Dependencies/clone-dependencies.sh
-
-      - name: Build static dependencies (.a)
-        run: |
-          ./Dependencies/.github/build/macos-${{ matrix.architecture }}/build.sh
+          mkdir -p /tmp/dependencies
+          curl -sSL "https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/${{ matrix.asset }}" -o /tmp/deps.zip
+          unzip -q /tmp/deps.zip -d /tmp/dependencies
 
       - name: Configure and build ImageMagick
         run: |
