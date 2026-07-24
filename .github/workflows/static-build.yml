@@ -81,24 +81,41 @@ jobs:
           path: imagemagick-linux-${{ matrix.architecture }}-static.tar.gz
 
   build-linux-musl:
-    name: Linux x64 Static (Musl - Portable)
-    runs-on: ubuntu-24.04
+    name: Linux ${{ matrix.architecture }} Static (Musl - Portable)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: x64
+            runner: ubuntu-24.04
+            asset: linux-musl-x64-static.zip
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+            asset: ""
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout ImageMagick
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           persist-credentials: false
 
       - name: Build fully static binary in Alpine Docker container
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace alpine:3.21 sh -c "
             set -e
-            apk add --no-cache autoconf automake bash binutils g++ gcc gettext-tiny libtool make pkgconf curl zip zstd-dev zstd-static
-            
+            apk add --no-cache autoconf automake bash binutils g++ gcc gettext-tiny libtool make pkgconf curl zip zstd-dev zstd-static git gperf linux-headers musl-libintl py3-pip ragel texinfo
+
             mkdir -p /tmp/dependencies
-            curl -sSL 'https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/linux-musl-x64-static.zip' -o /tmp/deps.zip
-            unzip -q /tmp/deps.zip -d /tmp/dependencies
+            if [ -n '${{ matrix.asset }}' ]; then
+              curl -sSL 'https://github.com/ImageMagick/Dependencies/releases/download/${DEPENDENCIES_VERSION}/${{ matrix.asset }}' -o /tmp/deps.zip
+              unzip -q /tmp/deps.zip -d /tmp/dependencies
+            else
+              ./Dependencies/clone-dependencies.sh
+              ./Dependencies/.github/build/linux-x64/build.sh
+            fi
+
             sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib/pkgconfig/*.pc || true
             sed -i 's/-l-lpthread/-lpthread/g' /tmp/dependencies/lib64/pkgconfig/*.pc || true
             
@@ -113,14 +130,14 @@ jobs:
             make install
             
             cd /tmp/im-dist
-            tar -czvf /workspace/imagemagick-linux-musl-x64-static.tar.gz bin/
+            tar -czvf /workspace/imagemagick-linux-musl-${{ matrix.architecture }}-static.tar.gz bin/
           "
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imagemagick-linux-musl-x64-static
-          path: imagemagick-linux-musl-x64-static.tar.gz
+          name: imagemagick-linux-musl-${{ matrix.architecture }}-static
+          path: imagemagick-linux-musl-${{ matrix.architecture }}-static.tar.gz
 
   build-macos:
     name: macOS ${{ matrix.architecture }} Static
